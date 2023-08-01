@@ -1,0 +1,506 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * The RegularVendingMachine class represents a simple vending machine that sells various products.
+ * It allows users to insert coins, select products, view product information, restock products,
+ * and view purchase history.
+ */
+public class RegularVendingMachine extends SpecialFeatures{
+
+    /**
+     * The panel representing the regular vending machine in the user interface.
+     */
+    private JPanel regularVendingMachinePanel;
+
+    /**
+     * The total number of coins inserted into the regular vending machine.
+     */
+    private int totalCoinsInserted;
+
+    /**
+     * The button used to insert coins into the regular vending machine.
+     */
+    private JButton putCoinsButton;
+
+    /**
+     * The button used to restock the products in the regular vending machine.
+     */
+    private JButton restockButton;
+
+    /**
+     * The label displaying the total number of coins inserted in the regular vending machine.
+     */
+    private JLabel totalCoinsLabel;
+
+    /**
+     * A map containing the prices of different products available in the regular vending machine.
+     * Key: Product name, Value: Price in coins
+     */
+    private Map<String, Integer> regPrices;
+
+    /**
+     * A map containing the calorie counts for different products available in the regular vending machine.
+     * Key: Product name, Value: Calorie count
+     */
+    private Map<String, Integer> regCalories;
+
+    /**
+     * A map containing the current stock levels of different products available in the regular vending machine.
+     * Key: Product name, Value: Current stock count
+     */
+    private Map<String, Integer> regStocks;
+
+    /**
+     * A list of items that the user has bought from the regular vending machine.
+     */
+    private List<String> broughtItems;
+
+    /**
+     * A list of purchase history entries containing information about the user's past purchases.
+     */
+    private List<PurchaseHistory> purchaseHistoryList;
+
+
+    public int newStocks;
+
+    /**
+     * Constructs a new RegularVendingMachine with the specified totalCoinsLabel.
+     *
+     * @param totalCoinsLabel the label used to display the total amount of coins inserted
+     */
+    public RegularVendingMachine (JLabel totalCoinsLabel) {
+        super();
+
+        this.totalCoinsLabel = totalCoinsLabel;
+
+        regularVendingMachinePanel = new JPanel(new BorderLayout());
+
+        // Create a panel for the product buttons with a 2x4 grid layout
+        JPanel productButtonsPanel = new JPanel(new GridLayout(2, 4, 10, 10));
+
+        // Initialize the totalCoinsInserted to 0
+        totalCoinsInserted = 0;
+        broughtItems = new ArrayList<>();
+        purchaseHistoryList = new ArrayList<>();
+
+        // Initialize product prices
+        regPrices = new HashMap<>();
+        regPrices.put("Root Beer", 0);
+        regPrices.put("Pepsi",0);
+        regPrices.put("Cookies",0);
+        regPrices.put("Milk",0);
+        regPrices.put("MnM",0);
+        regPrices.put("Reese's Bar",0);
+        regPrices.put("Doritos",0);
+        regPrices.put("Takis",0);
+
+        // Initialize product stocks
+        regStocks = new HashMap<>();
+        regStocks.put("Root Beer", 10);
+        regStocks.put("Pepsi", 10);
+        regStocks.put("Cookies", 10);
+        regStocks.put("Milk",10);
+        regStocks.put("MnM",10);
+        regStocks.put("Reese's Bar",10);
+        regStocks.put("Doritos",10);
+        regStocks.put("Takis",10);
+
+        // Initialize product calories
+        regCalories = new HashMap<>();
+        regCalories.put("Root Beer", 150);
+        regCalories.put("Pepsi", 140);
+        regCalories.put("Cookies", 120);
+        regCalories.put("Milk", 100);
+        regCalories.put("MnM", 50);
+        regCalories.put("Reese's Bar", 250);
+        regCalories.put("Doritos", 300);
+        regCalories.put("Takis", 280);
+
+        totalCoinsLabel.setText("Total Coins Inserted: $" + totalCoinsInserted);
+        totalCoinsLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        totalCoinsLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        JPanel totalCoinsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        totalCoinsPanel.add(totalCoinsLabel);
+        regularVendingMachinePanel.add(totalCoinsPanel, BorderLayout.NORTH);
+
+        createAndAddButton(productButtonsPanel, "Root Beer");
+        createAndAddButton(productButtonsPanel, "Pepsi");
+        createAndAddButton(productButtonsPanel, "Cookies");
+        createAndAddButton(productButtonsPanel, "Milk");
+        createAndAddButton(productButtonsPanel, "MnM");
+        createAndAddButton(productButtonsPanel, "Reese's Bar");
+        createAndAddButton(productButtonsPanel, "Doritos");
+        createAndAddButton(productButtonsPanel, "Takis");
+
+        regularVendingMachinePanel.add(productButtonsPanel, BorderLayout.CENTER);
+
+        // Create a separate panel for the buttons "Put Coins" and "Restock"
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+
+        putCoinsButton = new JButton("Put Coins");
+        putCoinsButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        putCoinsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handlePutCoins();
+            }
+        });
+        buttonPanel.add(putCoinsButton);
+
+        restockButton = new JButton("Restock");
+        restockButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        restockButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleRestock();
+            }
+        });
+        buttonPanel.add(restockButton);
+
+        JButton shoppingCart = new JButton("Shopping Cart");
+        shoppingCart.setFont(new Font("Arial", Font.PLAIN, 12));
+        shoppingCart.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                displayBroughtItems();
+            }
+        });
+        buttonPanel.add(shoppingCart);
+
+        // Add "Dispense Item" button for each product
+        JButton dispenseItemButton = new JButton("Dispense Item");
+        dispenseItemButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        dispenseItemButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleDispenseItem();
+            }
+        });
+        buttonPanel.add(dispenseItemButton);
+
+        // Add "Summary" button
+        JButton summaryButton = new JButton("Summary");
+        summaryButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        summaryButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                displaySummary();
+            }
+        });
+        buttonPanel.add(summaryButton);
+
+        // Add "Set Price" button
+        JButton setPriceButton = new JButton("Set Price");
+        setPriceButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        setPriceButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleSetPrice();
+            }
+        });
+        buttonPanel.add(setPriceButton);
+
+        regularVendingMachinePanel.add(buttonPanel, BorderLayout.SOUTH);
+    }
+
+    /**
+     * Handles the action of setting a new price for a specific product.
+     */
+    private void handleSetPrice() {
+        String[] products = {"Root Beer", "Pepsi", "Cookies", "Milk", "MnM", "Reese's Bar", "Doritos", "Takis"};
+        String selectedProduct = (String) JOptionPane.showInputDialog(regularVendingMachinePanel,
+                "Select the item to set the price:",
+                "Set Price for Item",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                products,
+                products[0]);
+
+        if (selectedProduct != null) {
+            String input = JOptionPane.showInputDialog(regularVendingMachinePanel,
+                    "Enter the new price for " + selectedProduct + ":");
+
+            if (input != null) {
+                int newPrice = Integer.parseInt(input);
+                regPrices.put(selectedProduct, newPrice);
+                JOptionPane.showMessageDialog(regularVendingMachinePanel, "Price for " + selectedProduct + " set to $" + newPrice);
+            }
+        }
+    }
+
+    /**
+     * Displays the list of items that have been brought by the user.
+     */
+    private void displayBroughtItems() {
+        StringBuilder items = new StringBuilder("Brought Items:\n");
+        Map<String, Integer> boughtItemCount = new HashMap<>();
+
+        // Count the quantity of each product bought
+        for (String product : broughtItems) {
+            boughtItemCount.put(product, boughtItemCount.getOrDefault(product, 0) + 1);
+        }
+
+        // Display the products and their quantities
+        for (String product : boughtItemCount.keySet()) {
+            int quantityBought = boughtItemCount.get(product);
+            items.append(product).append(": ").append(quantityBought).append("\n");
+        }
+
+        JOptionPane.showMessageDialog(regularVendingMachinePanel, items.toString(), "Brought Items", JOptionPane.PLAIN_MESSAGE);
+    }
+
+    /**
+     * Creates a new JButton for the specified product and adds it to the productButtonsPanel.
+     *
+     * @param panel   the panel to which the button and its info panel will be added
+     * @param buttonText   the text to be displayed on the button
+     */
+    private void createAndAddButton(JPanel panel, String buttonText) {
+        JButton button = new JButton(buttonText);
+        button.setFont(new Font("Arial", Font.PLAIN, 20));
+        JPanel buttonPanel = new JPanel(new BorderLayout()); // Create a new panel for each button and its info
+
+        // Create a label to display the stocks, calories, and price
+        JLabel productInfoLabel = new JLabel();
+        productInfoLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        buttonPanel.add(button, BorderLayout.NORTH); // Button on top
+        buttonPanel.add(productInfoLabel, BorderLayout.CENTER); // Info label below the button
+
+        updateProductInfoLabel(buttonText, productInfoLabel); // Set initial info text
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleProductSelection(buttonText);
+            }
+        });
+
+        panel.add(buttonPanel); // Add the button and info panel to the main panel
+    }
+
+    /**
+     * Handles the action of dispensing the selected items and displaying the purchase summary.
+     */
+    private void handleDispenseItem() {
+        if (broughtItems.isEmpty()) {
+            JOptionPane.showMessageDialog(regularVendingMachinePanel, "No items in the shopping cart!");
+            return;
+        }
+
+        // Calculate total cost of all items in the shopping cart
+        int totalCost = broughtItems.stream().mapToInt(item -> regPrices.get(item)).sum();
+
+        // Calculate remaining change
+        int remainingChange = totalCoinsInserted - totalCost;
+
+        // Display items bought and remaining change
+        StringBuilder purchaseSummary = new StringBuilder("Items Dispensed:\n");
+        for (String product : broughtItems) {
+            int price = regPrices.get(product);
+            purchaseSummary.append(product).append(": $").append(price).append("\n");
+        }
+
+        if (remainingChange > 0) {
+            purchaseSummary.append("\nRemaining Change: $").append(remainingChange).append("\n");
+        } else if (remainingChange == 0) {
+            purchaseSummary.append("\nNo change.\n");
+        } else {
+            purchaseSummary.append("\nInsufficient money inserted. Please add more coins.\n");
+        }
+
+        // Save purchase details to the history list
+        PurchaseHistory purchaseHistory = new PurchaseHistory(new ArrayList<>(broughtItems), totalCost);
+        purchaseHistoryList.add(purchaseHistory);
+
+        JOptionPane.showMessageDialog(regularVendingMachinePanel, purchaseSummary.toString(), "Purchase Summary", JOptionPane.PLAIN_MESSAGE);
+
+        // Reset totalCoinsInserted and broughtItems for the next purchase
+        totalCoinsInserted = 0;
+        totalCoinsLabel.setText("Total Coins Inserted: $" + totalCoinsInserted);
+        broughtItems.clear();
+    }
+
+    /**
+     * Displays the summary of purchase history, including items bought and total price.
+     */
+    private void displaySummary() {
+        StringBuilder summary = new StringBuilder("Purchase History:\n\n");
+        for (int i = 0; i < purchaseHistoryList.size(); i++) {
+            PurchaseHistory purchaseHistory = purchaseHistoryList.get(i);
+            summary.append("Purchase ").append(i + 1).append(":\n");
+            for (String product : purchaseHistory.getItemsBought()) {
+                int price = regPrices.get(product);
+                summary.append(product).append(": $").append(price).append("\n");
+            }
+            summary.append("Total Price: $").append(purchaseHistory.getTotalPrice()).append("\n\n");
+        }
+
+        // Create a JTextArea to display the summary text
+        JTextArea textArea = new JTextArea(summary.toString());
+        textArea.setEditable(false);
+
+        // Wrap the JTextArea in a JScrollPane for scroll functionality
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(400, 300)); // Set preferred size of the scroll pane
+
+        JOptionPane.showMessageDialog(regularVendingMachinePanel, scrollPane, "Purchase History", JOptionPane.PLAIN_MESSAGE);
+    }
+
+
+    /**
+     * Updates the product information label with the current stocks, calories, and price for the given product.
+     *
+     * @param product   the product for which to update the information label
+     * @param label   the label to be updated with the product information
+     */
+    private void updateProductInfoLabel(String product, JLabel label) {
+        int calories = getCaloriesForProduct(product);
+        label.setText(String.format("<html>Calories: %d</html>",calories));
+    }
+
+    /**
+     * Retrieves the calorie information for the given product.
+     *
+     * @param product   the product for which to get the calorie information
+     * @return  the calorie value for the product, or a default value if not available
+     */
+    private int getCaloriesForProduct(String product) {
+        Integer calories = regCalories.get(product);
+        if (calories != null) {
+            return calories;
+        } else {
+            // Default value if the product's calorie information is not available
+            return 200;
+        }
+    }
+
+    /**
+     * Handles the action of restocking a specific product.
+     */
+    private void handleRestock() {
+        String enteredUsername = JOptionPane.showInputDialog(regularVendingMachinePanel, "Enter username:");
+        String enteredPassword = JOptionPane.showInputDialog(regularVendingMachinePanel, "Enter password:");
+
+        if (checkCredentials(enteredUsername, enteredPassword)) {
+            String[] products = {"Root Beer", "Pepsi", "Cookies", "Milk", "MnM", "Reese's Bar", "Doritos", "Takis"};
+            String selectedProduct = (String) JOptionPane.showInputDialog(regularVendingMachinePanel,
+                    "Select the item to restock:",
+                    "Restock Item",
+                    JOptionPane.PLAIN_MESSAGE,
+                    null,
+                    products,
+                    products[0]);
+
+            if (selectedProduct != null) {
+                int currentStocks = regStocks.get(selectedProduct);
+                String input = JOptionPane.showInputDialog(regularVendingMachinePanel,
+                        "Enter the number of stocks (current: " + currentStocks + "):");
+
+                if (input != null) {
+                    int restockAmount = Integer.parseInt(input);
+                    newStocks = currentStocks + restockAmount;
+                    // Make sure the new stocks don't exceed 10
+                    newStocks = Math.min(newStocks, 10);
+                    regStocks.put(selectedProduct, newStocks);
+                    JOptionPane.showMessageDialog(regularVendingMachinePanel, selectedProduct + " restocked. New stocks: " + newStocks);
+                }
+            }
+        } else {
+            JOptionPane.showMessageDialog(regularVendingMachinePanel, "Incorrect username or password. Restocking not allowed.");
+        }
+    }
+
+    /**
+     * Handles the action of inserting coins into the vending machine.
+     */
+    private void handlePutCoins() {
+        String[] coins = {"$1", "$5", "$10", "$20", "$50", "$100", "$200", "$500", "$1000"};
+        String input = (String) JOptionPane.showInputDialog(regularVendingMachinePanel,
+                "Select a coin to insert:",
+                "Insert Coins",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                coins,
+                coins[0]);
+
+        if (input != null) {
+            int coinValue = Integer.parseInt(input.substring(1)); // Convert "$X" to X (integer)
+            totalCoinsInserted += coinValue;
+            totalCoinsLabel.setText("Total Coins Inserted: $" + totalCoinsInserted);
+            handlePutCoins(); // Ask for another coin until "Cancel" is pressed
+        }
+    }
+
+    /**
+     * Handles the action of selecting a product and updating the total coins inserted.
+     *
+     * @param product   the product selected by the user
+     */
+    private void handleProductSelection(String product) {
+        int currentStocks = regStocks.get(product);
+
+        if (currentStocks <= 0) {
+            JOptionPane.showMessageDialog(regularVendingMachinePanel, "No more stock left for this item!");
+        } else if (totalCoinsInserted >= regPrices.get(product)) {
+            totalCoinsInserted -= regPrices.get(product);
+            totalCoinsLabel.setText("Total Coins Inserted: $" + totalCoinsInserted);
+            regStocks.put(product, regStocks.get(product) - 1);
+            // Update the list of brought items when a product is purchased
+            broughtItems.add(product);
+            JOptionPane.showMessageDialog(regularVendingMachinePanel, "Enjoy your " + product + "!");
+        } else {
+            JOptionPane.showMessageDialog(regularVendingMachinePanel, "Insufficient coins. Please insert more coins.");
+        }
+    }
+
+    /**
+     * Represents the purchase history of a single transaction.
+     */
+    private static class PurchaseHistory {
+        private List<String> itemsBought;
+        private int totalPrice;
+
+        /**
+         * Constructs a new PurchaseHistory with the specified items bought and total price.
+         *
+         * @param itemsBought   the list of items bought in this purchase
+         * @param totalPrice   the total price of the purchase
+         */
+        public PurchaseHistory(List<String> itemsBought, int totalPrice) {
+            this.itemsBought = itemsBought;
+            this.totalPrice = totalPrice;
+        }
+
+        /**
+         * Retrieves the list of items bought in this purchase.
+         *
+         * @return  the list of items bought
+         */
+        public List<String> getItemsBought() {
+            return itemsBought;
+        }
+
+        /**
+         * Retrieves the total price of this purchase.
+         *
+         * @return  the total price of the purchase
+         */
+        public int getTotalPrice(){return totalPrice;}
+    }
+
+    /**
+     * Gets the main panel of the vending machine.
+     *
+     * @return  the JPanel representing the regular vending machine
+     */
+    public JPanel getPanel() {
+        return regularVendingMachinePanel;
+    }
+}
